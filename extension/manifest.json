@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Comment Police",
+  "version": "1.0.0",
+  "description": "Demonstrates injecting an extension script into the page document via <script src=...>.",
+  "permissions": [],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["page-script.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
