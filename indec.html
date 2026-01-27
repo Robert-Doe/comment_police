@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>SVG Link Hub</title>
+    <style>
+        :root { color-scheme: light dark; }
+
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 24px; }
+        h1 { margin: 0 0 12px; font-size: 22px; }
+        .sub { margin: 0 0 20px; opacity: 0.75; }
+
+        .toolbar { display: flex; gap: 12px; align-items: center; margin: 0 0 18px; flex-wrap: wrap; }
+        input[type="search"] { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(128, 128, 128, .35); min-width: 260px; }
+
+        button {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(128, 128, 128, .35);
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+        details { border: 1px solid rgba(128, 128, 128, .25); border-radius: 14px; padding: 10px 12px; }
+        summary { cursor: pointer; font-weight: 650; }
+
+        .site-meta { font-size: 12px; opacity: 0.75; margin-top: 4px; }
+        .pages { margin-top: 10px; display: grid; gap: 10px; }
+        .page { border: 1px dashed rgba(128, 128, 128, .25); border-radius: 12px; padding: 10px; }
+
+        .page-title { font-weight: 600; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+        .links { margin-top: 8px; display: grid; gap: 8px; }
+
+        a { text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .pill { font-size: 12px; padding: 2px 8px; border: 1px solid rgba(128, 128, 128, .35); border-radius: 999px; opacity: 0.8; }
+        .empty { opacity: 0.7; padding: 10px 0; }
+
+        /* NEW: row layout for svg link + download button */
+        .svg-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border: 1px solid rgba(128, 128, 128, .18);
+            border-radius: 10px;
+            padding: 8px 10px;
+        }
+        .svg-row a {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .btn-small {
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(128, 128, 128, .35);
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .btn-small:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+<h1>DOM Graphs</h1>
+<p class="sub">Browse websites/pages and open SVGs in a new tab (no forced width/height).</p>
+
+<div class="toolbar">
+    <input id="q" type="search" placeholder="Search sites, pages, SVG names…"/>
+    <button id="expandAll" type="button">Expand all</button>
+    <button id="collapseAll" type="button">Collapse all</button>
+</div>
+
+<div id="root" class="grid"></div>
+
+<script>
+    /********************************************************************
+     * EDIT THIS: websites -> pages -> svgs
+     ********************************************************************/
+    const DATA = [
+        {
+            siteName: "Youtube",
+            siteUrl: "https://youtube.com",
+            pages: [
+                {
+                    pageName: "Sample Youtube Video 1",
+                    pageUrl: "https://www.youtube.com/watch?v=eHZifpgyH_4",
+                    svgs: [
+                        {label: "View Tree", url: "./images/youtube_sample_1.svg"},
+                    ]
+                }
+            ]
+        }, {
+            siteName: "Vimeo",
+            siteUrl: "vimeo.com",
+            pages: [
+                {
+                    pageName: "Sample Vimeo Video 1",
+                    pageUrl: "https://vimeo.com/76979871",
+                    svgs: [
+                        {label: "View Tree", url: "./images/vimeo_sample_1.svg"},
+                    ]
+                }
+            ]
+        }, {
+            siteName: "Gmail",
+            siteUrl: "https://mail.google.com",
+            pages: [
+                {
+                    pageName: "Sample Gmail Inbox 1",
+                    pageUrl: "https://mail.google.com/mail/u/0/#inbox",
+                    svgs: [
+                        {label: "View Tree", url: "./images/gmail_sample_1.svg"},
+                    ]
+                }
+            ]
+        }, {
+            siteName: "Science Direct",
+            siteUrl: "https://www.sciencedirect.com",
+            pages: [
+                {
+                    pageName: "Sample Science Direct Page 1",
+                    pageUrl: "https://www.sciencedirect.com/science/article/pii/S0196677499910441?fr=RR-2&ref=pdf_download&rr=9bf23ff5cfcf08d0",
+                    svgs: [
+                        {label: "View Tree", url: "./images/science_direct_sample_1.svg"},
+                    ]
+                }
+            ]
+        }, {
+            siteName: "Google Search Results",
+            siteUrl: "https://www.google.com/search",
+            pages: [
+                {
+                    pageName: "Sample Google Search 1",
+                    pageUrl: "https://www.google.com/search?q=422+usd+to+cedis&rlz=1C1CHWL_enGH1054GH1054&oq=&gs_lcrp=EgZjaHJvbWUqCQgBEEUYOxjCAzIJCAAQRRg7GMIDMgkIARBFGDsYwgMyCQgCEEUYOxjCAzIJCAMQRRg7GMIDMgkIBBBFGDsYwgMyCQgFEEUYOxjCAzIJCAYQRRg7GMIDMgkIBxBFGDsYwgPSAQk0MDkxajBqMTWoAgiwAgE&sourceid=chrome&ie=UTF-8",
+                    svgs: [
+                        {label: "View Tree", url: "./images/dom_painted_cores.svg"},
+                    ]
+                }
+            ]
+        }, {
+            siteName: "Tiktok",
+            siteUrl: "https://tiktok.com",
+            pages: [
+                {
+                    pageName: "Sample Tiktok Video 1",
+                    pageUrl: "https://www.tiktok.com/@bobcumulus/video/7491535168298028343",
+                    svgs: [
+                        {label: "View Tree", url: "./images/tiktok_sample_1.svg"},
+                    ]
+                }
+            ]
+        }, {
+            siteName: "Google Sheets",
+            siteUrl: "https://docs.google.com/u/0/sheets",
+            pages: [
+                {
+                    pageName: "Sample Google Sheet 1",
+                    pageUrl: "https://www.youtube.com/watch?v=eHZifpgyH_4",
+                    svgs: [
+                        {label: "View Tree", url: "./images/google_sheet_sample_1.svg"},
+                    ]
+                }
+            ]
+        }, {
+            siteName: "CodePath",
+            siteUrl: "https://codepath.org",
+            pages: [
+                {
+                    pageName: "Sample CodePath Page 1",
+                    pageUrl: "https://www.codepath.org/courses?utm_campaign=24159908-STUDENT%20SP26%20CONNCLASS&utm_medium=email&_hsenc=p2ANqtz--apKdGiBRBShZNO1lwTP4P5lgkSJ_jOKBbPRSxUCmQKmWGdgYgBJIQwA0LNbcR_UHpdPQZ1i-3HYAZxzdxYiOjBkKy4w&_hsmi=398947399&utm_content=398947549&utm_source=hs_email",
+                    svgs: [
+                        {label: "View Tree", url: "./images/codepath_sample_1.svg"},
+                    ]
+                }
+            ]
+        },{
+            siteName: "Wikipedia",
+            siteUrl: "https://wikipedia.com",
+            pages: [
+                {
+                    pageName: "Sample Wikipedia Page 1",
+                    pageUrl: "https://en.wikipedia.org/wiki/Computer",
+                    svgs: [
+                        {label: "View Tree", url: "./images/wikipedia_sample_1.svg"},
+                    ]
+                }
+            ]
+        },
+    ];
+
+    /********************************************************************
+     * Rendering
+     ********************************************************************/
+    const root = document.getElementById("root");
+    const q = document.getElementById("q");
+    const expandAllBtn = document.getElementById("expandAll");
+    const collapseAllBtn = document.getElementById("collapseAll");
+
+    const esc = (s) => String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+
+    function matchesQuery(site, query) {
+        if (!query) return true;
+        const hay = [
+            site.siteName, site.siteUrl,
+            ...(site.pages || []).flatMap(p => [
+                p.pageName, p.pageUrl,
+                ...(p.svgs || []).flatMap(s => [s.label, s.url])
+            ])
+        ].join(" ").toLowerCase();
+        return hay.includes(query.toLowerCase());
+    }
+
+    function openSvg(url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    // NEW: download helper (works great for local ./images/*.svg)
+    async function downloadSvg(url, label) {
+        const fallbackName = ((label || "graph").trim().replace(/[^\w\-]+/g, "_") || "graph") + ".svg";
+
+        // If same-origin, fetch and force download via Blob (most reliable)
+        const isSameOrigin = (() => {
+            try { return new URL(url, location.href).origin === location.origin; }
+            catch { return true; }
+        })();
+
+        if (isSameOrigin) {
+            try {
+                const res = await fetch(url, { cache: "no-store" });
+                if (!res.ok) throw new Error("Fetch failed: " + res.status);
+                const blob = await res.blob();
+
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = fallbackName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+                return;
+            } catch (e) {
+                console.warn("Blob download failed, falling back:", e);
+            }
+        }
+
+        // Cross-origin fallback: attempt <a download> click (may be ignored by some servers/browsers)
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fallbackName;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    function render(list, query) {
+        const filtered = (list || []).filter(site => matchesQuery(site, query));
+
+        if (!filtered.length) {
+            root.innerHTML = `<div class="empty">No matches.</div>`;
+            return;
+        }
+
+        root.innerHTML = filtered.map((site) => {
+            const pages = site.pages || [];
+            return `
+          <details data-site="1" open>
+            <summary>${esc(site.siteName)}</summary>
+            <div class="site-meta">
+              ${site.siteUrl ? `Site: <a href="${esc(site.siteUrl)}" target="_blank" rel="noopener noreferrer">${esc(site.siteUrl)}</a>` : ""}
+            </div>
+
+            <div class="pages">
+              ${pages.map((p) => {
+                const svgs = p.svgs || [];
+                return `
+                  <div class="page">
+                    <div class="page-title">
+                      <span>${esc(p.pageName || "Untitled Page")}</span>
+                      ${p.pageUrl ? `<a class="pill" href="${esc(p.pageUrl)}" target="_blank" rel="noopener noreferrer">Open page</a>` : ""}
+                    </div>
+
+                    <div class="links">
+                      ${svgs.length ? svgs.map((s) => `
+                        <div class="svg-row">
+                          <a href="${esc(s.url)}"
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             data-svg="1"
+                             data-url="${esc(s.url)}">
+                            ${esc(s.label || s.url)}
+                          </a>
+
+                          <button
+                            class="btn-small"
+                            type="button"
+                            data-dl="1"
+                            data-url="${esc(s.url)}"
+                            data-label="${esc(s.label || "graph")}">
+                            Download
+                          </button>
+                        </div>
+                      `).join("") : `<span class="empty">No SVG links.</span>`}
+                    </div>
+                  </div>
+                `;
+            }).join("")}
+            </div>
+          </details>
+        `;
+        }).join("");
+
+        // Open in new tab (keeps your old behavior)
+        root.querySelectorAll('a[data-svg="1"]').forEach(a => {
+            a.addEventListener("click", (e) => {
+                e.preventDefault();
+                openSvg(a.getAttribute("data-url"));
+            });
+        });
+
+        // NEW: download button wiring
+        root.querySelectorAll('button[data-dl="1"]').forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                const url = btn.getAttribute("data-url");
+                const label = btn.getAttribute("data-label");
+                await downloadSvg(url, label);
+            });
+        });
+    }
+
+    render(DATA, "");
+
+    q.addEventListener("input", () => render(DATA, q.value.trim()));
+
+    expandAllBtn.addEventListener("click", () => {
+        document.querySelectorAll("details[data-site='1']").forEach(d => d.open = true);
+    });
+
+    collapseAllBtn.addEventListener("click", () => {
+        document.querySelectorAll("details[data-site='1']").forEach(d => d.open = false);
+    });
+</script>
+</body>
+</html>

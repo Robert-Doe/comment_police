@@ -579,6 +579,7 @@
         }
     };
 
+
     console.log(
         `✅ Scan complete: analyzed ${results.length} elements. ` +
         `Use __commentFeatureScan.top(20), __commentFeatureScan.highlight(0), __commentFeatureScan.get(0)`
