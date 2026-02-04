@@ -120,11 +120,11 @@
           "pageUrl": "https://www.facebook.com/share/p/17d9SVAg3c/",
           "svgs": [{ "label": "View Tree", "url": "./img/facebook.com.svg" }]
         },
-        {
+        /*{
           "pageName": "/reel/",
           "pageUrl": "https://www.facebook.com/reel/",
           "svgs": [{ "label": "View Tree", "url": "./img/facebook.com.svg" }]
-        }
+        }*/
       ]
     },
     {
@@ -163,6 +163,7 @@
         }
       ]
     },
+
     {
       "siteDomain": "linkedin.com",
       "siteToken": "c74f7cde35c2",
@@ -175,6 +176,117 @@
         }
       ]
     },
+    {
+      siteDomain: "britannica.com",
+      siteUrl: "https://britannica.com",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://britannica.com",
+          svgs: [{ label: "View Tree", url: "./img/britannica.com.svg" }]
+        }
+      ]
+    },
+    {
+      siteDomain: "digitalocean.com",
+      siteUrl: "https://digitalocean.com",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://digitalocean.com",
+          svgs: [{ label: "View Tree", url: "./img/digitalocean.com.svg" }]
+        }
+      ]
+    },
+    {
+      siteDomain: "heightsonlemon.com",
+      siteUrl: "https://heightsonlemon.com",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://heightsonlemon.com",
+          svgs: [{ label: "View Tree", url: "./img/heightsonlemon.com.svg" }]
+        }
+      ]
+    },
+    {
+      siteDomain: "wise.com",
+      siteUrl: "https://wise.com",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://wise.com",
+          svgs: [{ label: "View Tree", url: "./img/wise.com.svg" }]
+        }
+      ]
+    },
+    {
+      siteDomain: "canvas.asu.edu",
+      siteUrl: "https://canvas.asu.edu",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://canvas.asu.edu",
+          svgs: [{ label: "View Tree", url: "./img/canvas.asu.edu.svg" }]
+        }
+      ]
+    },
+    {
+      siteDomain: "weblogin.asu.edu",
+      siteUrl: "https://weblogin.asu.edu",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://weblogin.asu.edu",
+          svgs: [{ label: "View Tree", url: "./img/weblogin.asu.edu.svg" }]
+        }
+      ]
+    },
+    {
+      siteDomain: "ghana.gov.gh",
+      siteUrl: "https://ghana.gov.gh",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://ghana.gov.gh",
+          svgs: [{ label: "View Tree", url: "./img/ghana.gov.gh.svg" }]
+        }
+      ]
+    },
+    {
+      siteDomain: "ghanaembassy.at",
+      siteUrl: "https://ghanaembassy.at",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://ghanaembassy.at",
+          svgs: [{ label: "View Tree", url: "./img/ghanaembassy.at.svg" }]
+        }
+      ]
+    },
+    {
+      siteDomain: "thecommonwealth.org",
+      siteUrl: "https://thecommonwealth.org",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://thecommonwealth.org",
+          svgs: [{ label: "View Tree", url: "./img/thecommonwealth.org.svg" }]
+        }
+      ]
+    },
+    {
+      siteDomain: "worldbank.org",
+      siteUrl: "https://worldbank.org",
+      pages: [
+        {
+          pageName: "/",
+          pageUrl: "https://worldbank.org",
+          svgs: [{ label: "View Tree", url: "./img/worldbank.org.svg" }]
+        }
+      ]
+    },
+
     {
       "siteDomain": "github.com",
       "siteToken": "e786256ef4f4",
@@ -396,11 +508,11 @@
       "siteToken": "7c56e94cd30c",
       "siteUrl": "https://substack.com",
       "pages": [
-        {
+        /*{
           "pageName": "/@dailyreminders/note/c-160112207",
           "pageUrl": "https://substack.com/@dailyreminders/note/c-160112207",
           "svgs": [{ "label": "View Tree", "url": "./img/substack.com.svg" }]
-        },
+        },*/
         {
           "pageName": "/note/p-153629869/restacks?utm_source=substack&utm_content=facepile-restacks",
           "pageUrl": "https://substack.com/note/p-153629869/restacks?utm_source=substack&utm_content=facepile-restacks",
@@ -1039,7 +1151,8 @@
   }
 
   function openSvg(url) {
-    window.open(url, "_blank", "noopener,noreferrer");
+     window.open(url, "_blank", "noopener,noreferrer");
+    //window.open(`./viewer.html#${encodeURIComponent(token)}`, "_blank", "noopener,noreferrer");
   }
 
   async function downloadSvg(url, filenameBase) {

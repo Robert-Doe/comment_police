@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+    <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SVG Viewer</title>
+<style>
+    html, body { height: 100%; margin: 0; }
+    /* No forced width/height; let the SVG dictate itself */
+    #wrap { padding: 0; }
+</style>
+</head>
+<body>
+<div id="wrap"></div>
+
+<script>
+    // TOKEN -> SVG PATH mapping
+    // Example token: "31193328f8e2" -> "./img/facebook.com.svg"
+    const SVG_BY_TOKEN = {
+    // fill this from your generated DATA
+    "31193328f8e2": "./img/facebook.com.svg",
+    // ...
+};
+
+    const token = (location.hash || "").slice(1);
+    const svgUrl = SVG_BY_TOKEN[token];
+
+    if (!svgUrl) {
+    document.getElementById("wrap").textContent = "Invalid or missing token.";
+    throw new Error("Invalid token");
+}
+
+    fetch(svgUrl, { cache: "no-store" })
+    .then(r => r.text())
+    .then(svgText => {
+    // Render the SVG inline
+    document.getElementById("wrap").innerHTML = svgText;
+
+    // Optional: remove fixed width/height if present in the SVG root
+    const svg = document.querySelector("svg");
+    if (svg) {
+    svg.removeAttribute("width");
+    svg.removeAttribute("height");
+}
+})
+    .catch(err => {
+    document.getElementById("wrap").textContent = "Failed to load SVG.";
+    console.error(err);
+});
+</script>
+</body>
+</html>

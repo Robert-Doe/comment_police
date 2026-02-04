@@ -23,7 +23,7 @@
 
         // DOT
         rootEl: document.body,
-        dotFilename: "nypost.com.dot",
+        dotFilename: `${window.location.hostname}`+".dot",
         dotTitle:
             "DOM Map (core: thick border; fill = per-node #scoring-features matched (0..10) for ANY node with count>0; label=tag only)",
 

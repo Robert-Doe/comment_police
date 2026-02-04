@@ -1,0 +1,1190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>DOM Graphs</title>
+  <style>
+    :root { color-scheme: light dark; }
+
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 24px; }
+    h1 { margin: 0 0 10px; font-size: 22px; }
+    .sub { margin: 0 0 18px; opacity: 0.75; }
+
+    .toolbar { display: flex; gap: 12px; align-items: center; margin: 0 0 18px; flex-wrap: wrap; }
+    input[type="search"] { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(128, 128, 128, .35); min-width: 260px; }
+    button { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(128, 128, 128, .35); background: transparent; cursor: pointer; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px; }
+    details { border: 1px solid rgba(128, 128, 128, .25); border-radius: 14px; padding: 10px 12px; }
+    summary { cursor: pointer; font-weight: 650; }
+
+    .site-meta { font-size: 12px; opacity: 0.75; margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .token {
+      display: inline-block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      padding: 2px 8px;
+      border: 1px solid rgba(128,128,128,.35);
+      border-radius: 999px;
+      user-select: none;
+      cursor: pointer;
+      opacity: 0.9;
+    }
+    .token:active { transform: scale(0.99); }
+
+    .pill {
+      font-size: 12px;
+      padding: 2px 8px;
+      border: 1px solid rgba(128, 128, 128, .35);
+      border-radius: 999px;
+      opacity: 0.8;
+      text-decoration: none;
+    }
+    .pill:hover { text-decoration: underline; }
+
+    .pages { margin-top: 10px; display: grid; gap: 10px; }
+    .page { border: 1px dashed rgba(128, 128, 128, .25); border-radius: 12px; padding: 10px; }
+
+    .page-title { font-weight: 600; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .links { margin-top: 8px; display: grid; gap: 8px; }
+
+    .svg-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid rgba(128, 128, 128, .18);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .svg-row a {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .svg-row a:hover { text-decoration: underline; }
+
+    .btn-small {
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(128, 128, 128, .35);
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .empty { opacity: 0.7; padding: 10px 0; }
+    footer { margin-top: 22px; opacity: 0.7; font-size: 12px; }
+    code { opacity: 0.9; }
+  </style>
+</head>
+<body>
+<h1>DOM Graphs</h1>
+<p class="sub">
+  Sites are shown as hash tokens. Double-click a token to reveal the domain for 5 seconds.
+  SVGs are expected at <code>./img/{domain}.svg</code>.
+</p>
+
+<div class="toolbar">
+  <input id="q" type="search" placeholder="Search paths / URLs / SVG labels…"/>
+  <button id="expandAll" type="button">Expand all</button>
+  <button id="collapseAll" type="button">Collapse all</button>
+</div>
+
+<div id="root" class="grid"></div>
+
+<footer>
+  Put SVG files in <code>img/</code> next to this HTML, named like <code>google.com.svg</code>.
+</footer>
+
+<script>
+  /********************************************************************
+   * DATA generated from your uploaded CSV
+   * - grouped by "Site Domain"
+   * - each page uses the CSV URL
+   * - svg path: ./img/{domain}.svg
+   ********************************************************************/
+  const DATA = [
+    {
+      "siteDomain": "facebook.com",
+      "siteToken": "31193328f8e2",
+      "siteUrl": "https://facebook.com",
+      "pages": [
+        {
+          "pageName": "/share/p/17d9SVAg3c/",
+          "pageUrl": "https://www.facebook.com/share/p/17d9SVAg3c/",
+          "svgs": [{ "label": "View Tree", "url": "./img/facebook.com.svg" }]
+        },
+        {
+          "pageName": "/reel/",
+          "pageUrl": "https://www.facebook.com/reel/",
+          "svgs": [{ "label": "View Tree", "url": "./img/facebook.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "youtube.com",
+      "siteToken": "4dc3a769398c",
+      "siteUrl": "https://youtube.com",
+      "pages": [
+        {
+          "pageName": "/watch?v=1qePMJFeWk4&list=RDha5dr_23gEw&index=14",
+          "pageUrl": "https://www.youtube.com/watch?v=1qePMJFeWk4&list=RDha5dr_23gEw&index=14",
+          "svgs": [{ "label": "View Tree", "url": "./img/youtube.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "instagram.com",
+      "siteToken": "055878d4c9c9",
+      "siteUrl": "https://instagram.com",
+      "pages": [
+        {
+          "pageName": "/p/DP5-Rc5jz0w/",
+          "pageUrl": "https://www.instagram.com/p/DP5-Rc5jz0w/",
+          "svgs": [{ "label": "View Tree", "url": "./img/instagram.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "x.com",
+      "siteToken": "e4f006d0edee",
+      "siteUrl": "https://x.com",
+      "pages": [
+        {
+          "pageName": "/elonmusk/status/1979177894690652216",
+          "pageUrl": "https://x.com/elonmusk/status/1979177894690652216",
+          "svgs": [{ "label": "View Tree", "url": "./img/x.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "linkedin.com",
+      "siteToken": "c74f7cde35c2",
+      "siteUrl": "https://linkedin.com",
+      "pages": [
+        {
+          "pageName": "/posts/jw-marriott-stay-in-the-moment-ugcPost-7357114987401625600-IMVA?utm_source=share&utm_medium=member_desktop&rcm=ACoAACpsGmoBYkPsWvxto83uvFICzjSNb-rB2VY",
+          "pageUrl": "https://www.linkedin.com/posts/jw-marriott-stay-in-the-moment-ugcPost-7357114987401625600-IMVA?utm_source=share&utm_medium=member_desktop&rcm=ACoAACpsGmoBYkPsWvxto83uvFICzjSNb-rB2VY",
+          "svgs": [{ "label": "View Tree", "url": "./img/linkedin.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "github.com",
+      "siteToken": "e786256ef4f4",
+      "siteUrl": "https://github.com",
+      "pages": [
+        {
+          "pageName": "/tensorflow/tensorflow/issues/102492",
+          "pageUrl": "https://github.com/tensorflow/tensorflow/issues/102492",
+          "svgs": [{ "label": "View Tree", "url": "./img/github.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "tiktok.com",
+      "siteToken": "762b476e8ce0",
+      "siteUrl": "https://tiktok.com",
+      "pages": [
+        {
+          "pageName": "/@bobcumulus/video/7491535168298028343",
+          "pageUrl": "https://www.tiktok.com/@bobcumulus/video/7491535168298028343",
+          "svgs": [{ "label": "View Tree", "url": "./img/tiktok.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "vimeo.com",
+      "siteToken": "0a76c9b37c64",
+      "siteUrl": "https://vimeo.com",
+      "pages": [
+        {
+          "pageName": "/76979871",
+          "pageUrl": "https://vimeo.com/76979871",
+          "svgs": [{ "label": "View Tree", "url": "./img/vimeo.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "wordpress.com",
+      "siteToken": "6f0d74a65564",
+      "siteUrl": "https://wordpress.com",
+      "pages": [
+        {
+          "pageName": "/blog/2025/10/16/3-new-features-in-the-jetpack-mobile-app/",
+          "pageUrl": "https://wordpress.com/blog/2025/10/16/3-new-features-in-the-jetpack-mobile-app/",
+          "svgs": [{ "label": "View Tree", "url": "./img/wordpress.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "reddit.com",
+      "siteToken": "86dba3f4ea87",
+      "siteUrl": "https://reddit.com",
+      "pages": [
+        {
+          "pageName": "/r/ExplainTheJoke/comments/1o96j16/i_dont_play_golf_can_someone_explain/",
+          "pageUrl": "https://www.reddit.com/r/ExplainTheJoke/comments/1o96j16/i_dont_play_golf_can_someone_explain/",
+          "svgs": [{ "label": "View Tree", "url": "./img/reddit.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "tumblr.com",
+      "siteToken": "0fcedd0f5b47",
+      "siteUrl": "https://tumblr.com",
+      "pages": [
+        {
+          "pageName": "/explore/trending",
+          "pageUrl": "https://www.tumblr.com/explore/trending",
+          "svgs": [{ "label": "View Tree", "url": "./img/tumblr.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "medium.com",
+      "siteToken": "6e0e8d7e0382",
+      "siteUrl": "https://medium.com",
+      "pages": [
+        {
+          "pageName": "/in-fitness-and-in-health/how-to-train-mobility-when-you-have-no-idea-how-to-train-mobility-834080ff43db",
+          "pageUrl": "https://medium.com/in-fitness-and-in-health/how-to-train-mobility-when-you-have-no-idea-how-to-train-mobility-834080ff43db",
+          "svgs": [{ "label": "View Tree", "url": "./img/medium.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "soundcloud.com",
+      "siteToken": "0d7fcf7c3e80",
+      "siteUrl": "https://soundcloud.com",
+      "pages": [
+        {
+          "pageName": "/forss/flickermood",
+          "pageUrl": "https://soundcloud.com/forss/flickermood",
+          "svgs": [{ "label": "View Tree", "url": "./img/soundcloud.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "theguardian.com",
+      "siteToken": "9b2f7255c7f3",
+      "siteUrl": "https://theguardian.com",
+      "pages": [
+        {
+          "pageName": "/science/2024/sep/30/did-you-solve-it-the-box-problem-that-baffled-the-boffins?utm_source=chatgpt.com",
+          "pageUrl": "https://www.theguardian.com/science/2024/sep/30/did-you-solve-it-the-box-problem-that-baffled-the-boffins?utm_source=chatgpt.com",
+          "svgs": [{ "label": "View Tree", "url": "./img/theguardian.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "forbes.com",
+      "siteToken": "a403dbd1f1e7",
+      "siteUrl": "https://forbes.com",
+      "pages": [
+        {
+          "pageName": "/sites/saradorn/2025/10/17/trump-approval-rating-improves-amid-support-of-gaza-deal-in-latest-poll/?ctpv=xlrecirc",
+          "pageUrl": "https://www.forbes.com/sites/saradorn/2025/10/17/trump-approval-rating-improves-amid-support-of-gaza-deal-in-latest-poll/?ctpv=xlrecirc",
+          "svgs": [{ "label": "View Tree", "url": "./img/forbes.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "washingtonpost.com",
+      "siteToken": "f8f49fb5a5d7",
+      "siteUrl": "https://washingtonpost.com",
+      "pages": [
+        {
+          "pageName": "/food/2025/07/16/bens-chili-bowl-criticism/?utm_source=chatgpt.com",
+          "pageUrl": "https://www.washingtonpost.com/food/2025/07/16/bens-chili-bowl-criticism/?utm_source=chatgpt.com",
+          "svgs": [{ "label": "View Tree", "url": "./img/washingtonpost.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "dailymail.co.uk",
+      "siteToken": "1a0a8f0e1d4a",
+      "siteUrl": "https://dailymail.co.uk",
+      "pages": [
+        {
+          "pageName": "/news/article-15206509/florida-beach-parents-charged-baby-brian-sara-wilks.html",
+          "pageUrl": "https://www.dailymail.co.uk/news/article-15206509/florida-beach-parents-charged-baby-brian-sara-wilks.html",
+          "svgs": [{ "label": "View Tree", "url": "./img/dailymail.co.uk.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "qr.ae",
+      "siteToken": "2d3a6d7b20d1",
+      "siteUrl": "https://qr.ae",
+      "pages": [
+        {
+          "pageName": "/pCKHcb",
+          "pageUrl": "https://qr.ae/pCKHcb",
+          "svgs": [{ "label": "View Tree", "url": "./img/qr.ae.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "foxnews.com",
+      "siteToken": "c9490cf2db7a",
+      "siteUrl": "https://foxnews.com",
+      "pages": [
+        {
+          "pageName": "/politics/patrol-car-hit-shrapnel-during-marine-corps-live-fire-demo-celebration-attended-jd-vance",
+          "pageUrl": "https://www.foxnews.com/politics/patrol-car-hit-shrapnel-during-marine-corps-live-fire-demo-celebration-attended-jd-vance",
+          "svgs": [{ "label": "View Tree", "url": "./img/foxnews.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "news.ycombinator.com",
+      "siteToken": "9f2b9fd0b9ea",
+      "siteUrl": "https://news.ycombinator.com",
+      "pages": [
+        {
+          "pageName": "/newcomments",
+          "pageUrl": "https://news.ycombinator.com/newcomments",
+          "svgs": [{ "label": "View Tree", "url": "./img/news.ycombinator.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "humblequilts.blogspot.com",
+      "siteToken": "2cb0dfd608d6",
+      "siteUrl": "https://humblequilts.blogspot.com",
+      "pages": [
+        {
+          "pageName": "/2013/11/are-you-no-reply-commenter.html?m=0&utm_source=chatgpt.com",
+          "pageUrl": "https://humblequilts.blogspot.com/2013/11/are-you-no-reply-commenter.html?m=0&utm_source=chatgpt.com",
+          "svgs": [{ "label": "View Tree", "url": "./img/humblequilts.blogspot.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "stackoverflow.com",
+      "siteToken": "3c8b2dc8f3e3",
+      "siteUrl": "https://stackoverflow.com",
+      "pages": [
+        {
+          "pageName": "/questions/5767325/how-can-i-remove-a-specific-item-from-an-array-in-javascript?rq=2",
+          "pageUrl": "https://stackoverflow.com/questions/5767325/how-can-i-remove-a-specific-item-from-an-array-in-javascript?rq=2",
+          "svgs": [{ "label": "View Tree", "url": "./img/stackoverflow.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "nypost.com",
+      "siteToken": "0f7c6961f6a8",
+      "siteUrl": "https://nypost.com",
+      "pages": [
+        {
+          "pageName": "/2025/10/19/opinion/jane-fonda-pops-up-at-nycs-annual-animal-blessing-event-then-chows-down-on-some-harlem-fried-chicken/",
+          "pageUrl": "https://nypost.com/2025/10/19/opinion/jane-fonda-pops-up-at-nycs-annual-animal-blessing-event-then-chows-down-on-some-harlem-fried-chicken/",
+          "svgs": [{ "label": "View Tree", "url": "./img/nypost.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "substack.com",
+      "siteToken": "7c56e94cd30c",
+      "siteUrl": "https://substack.com",
+      "pages": [
+        {
+          "pageName": "/@dailyreminders/note/c-160112207",
+          "pageUrl": "https://substack.com/@dailyreminders/note/c-160112207",
+          "svgs": [{ "label": "View Tree", "url": "./img/substack.com.svg" }]
+        },
+        {
+          "pageName": "/note/p-153629869/restacks?utm_source=substack&utm_content=facepile-restacks",
+          "pageUrl": "https://substack.com/note/p-153629869/restacks?utm_source=substack&utm_content=facepile-restacks",
+          "svgs": [{ "label": "View Tree", "url": "./img/substack.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "theverge.com",
+      "siteToken": "b9a3f5f2f6d8",
+      "siteUrl": "https://theverge.com",
+      "pages": [
+        {
+          "pageName": "/tech/801899/opera-neon-ai-browser-trial-run#comments",
+          "pageUrl": "https://www.theverge.com/tech/801899/opera-neon-ai-browser-trial-run#comments",
+          "svgs": [{ "label": "View Tree", "url": "./img/theverge.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "math.stackexchange.com",
+      "siteToken": "f8fd8245cf55",
+      "siteUrl": "https://math.stackexchange.com",
+      "pages": [
+        {
+          "pageName": "/questions/5102714/planar-geometry-problems-solved-by-thinking-out-of-the-plane",
+          "pageUrl": "https://math.stackexchange.com/questions/5102714/planar-geometry-problems-solved-by-thinking-out-of-the-plane",
+          "svgs": [{ "label": "View Tree", "url": "./img/math.stackexchange.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "arstechnica.com",
+      "siteToken": "f5c5b45a9d7a",
+      "siteUrl": "https://arstechnica.com",
+      "pages": [
+        {
+          "pageName": "/space/2025/10/something-from-space-may-have-just-struck-a-united-airlines-flight-over-utah/?comments-page=1#comments",
+          "pageUrl": "https://arstechnica.com/space/2025/10/something-from-space-may-have-just-struck-a-united-airlines-flight-over-utah/?comments-page=1#comments",
+          "svgs": [{ "label": "View Tree", "url": "./img/arstechnica.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "slashdot.org",
+      "siteToken": "a9b48c3a1b57",
+      "siteUrl": "https://slashdot.org",
+      "pages": [
+        {
+          "pageName": "/story/25/10/20/0230212/was-the-web-more-creative-and-human-20-years-ago#comments",
+          "pageUrl": "https://news.slashdot.org/story/25/10/20/0230212/was-the-web-more-creative-and-human-20-years-ago#comments",
+          "svgs": [{ "label": "View Tree", "url": "./img/slashdot.org.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "douban.com",
+      "siteToken": "64c7f6b4f88e",
+      "siteUrl": "https://douban.com",
+      "pages": [
+        {
+          "pageName": "/group/topic/339440812/?_spm_id=MTk1ODExODA4&_i=0940593p1AEaLn",
+          "pageUrl": "https://www.douban.com/group/topic/339440812/?_spm_id=MTk1ODExODA4&_i=0940593p1AEaLn",
+          "svgs": [{ "label": "View Tree", "url": "./img/douban.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "dev.to",
+      "siteToken": "f61e4c1ed4be",
+      "siteUrl": "https://dev.to",
+      "pages": [
+        {
+          "pageName": "/dagoziem/the-saturday-morning-call-how-i-stopped-a-fintech-exploit-in-real-time-21po#comments",
+          "pageUrl": "https://dev.to/dagoziem/the-saturday-morning-call-how-i-stopped-a-fintech-exploit-in-real-time-21po#comments",
+          "svgs": [{ "label": "View Tree", "url": "./img/dev.to.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "producthunt.com",
+      "siteToken": "e8a9db69d0b3",
+      "siteUrl": "https://producthunt.com",
+      "pages": [
+        {
+          "pageName": "/products/tinyfast",
+          "pageUrl": "https://www.producthunt.com/products/tinyfast",
+          "svgs": [{ "label": "View Tree", "url": "./img/producthunt.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "blog.comebacks.app",
+      "siteToken": "77c390dd3c7a",
+      "siteUrl": "https://blog.comebacks.app",
+      "pages": [
+        {
+          "pageName": "/7-witty-replies-that-make-online-trolls-regret-picking-on-you?source=more_series_bottom_blogs",
+          "pageUrl": "https://blog.comebacks.app/7-witty-replies-that-make-online-trolls-regret-picking-on-you?source=more_series_bottom_blogs",
+          "svgs": [{ "label": "View Tree", "url": "./img/blog.comebacks.app.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "edstem.org",
+      "siteToken": "a3f5a0392c6f",
+      "siteUrl": "https://edstem.org",
+      "pages": [
+        {
+          "pageName": "/us/courses/83316/discussion/7136629",
+          "pageUrl": "https://edstem.org/us/courses/83316/discussion/7136629",
+          "svgs": [{ "label": "View Tree", "url": "./img/edstem.org.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "ratemyprofessors.com",
+      "siteToken": "c0ff1c75abdd",
+      "siteUrl": "https://ratemyprofessors.com",
+      "pages": [
+        {
+          "pageName": "/professor/2920261",
+          "pageUrl": "https://www.ratemyprofessors.com/professor/2920261",
+          "svgs": [{ "label": "View Tree", "url": "./img/ratemyprofessors.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "jiji.com.gh",
+      "siteToken": "8a2d0c45f6a8",
+      "siteUrl": "https://jiji.com.gh",
+      "pages": [
+        {
+          "pageName": "/opinions/hFxPHsSiZFbq1iXxHII0ESQn",
+          "pageUrl": "https://jiji.com.gh/opinions/hFxPHsSiZFbq1iXxHII0ESQn",
+          "svgs": [{ "label": "View Tree", "url": "./img/jiji.com.gh.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "jumia.com.gh",
+      "siteToken": "db1157a9f1c1",
+      "siteUrl": "https://jumia.com.gh",
+      "pages": [
+        {
+          "pageName": "/catalog/productratingsreviews/sku/TE339EA3BP8ECNAFAMZ/",
+          "pageUrl": "https://www.jumia.com.gh/catalog/productratingsreviews/sku/TE339EA3BP8ECNAFAMZ/",
+          "svgs": [{ "label": "View Tree", "url": "./img/jumia.com.gh.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "chuckdries.com",
+      "siteToken": "c1da5b4a0a5d",
+      "siteUrl": "https://chuckdries.com",
+      "pages": [
+        {
+          "pageName": "/posts/springtime-in-portland/",
+          "pageUrl": "https://chuckdries.com/posts/springtime-in-portland/",
+          "svgs": [{ "label": "View Tree", "url": "./img/chuckdries.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "allbloggingtips.com",
+      "siteToken": "64e20192b9da",
+      "siteUrl": "https://allbloggingtips.com",
+      "pages": [
+        {
+          "pageName": "/make-money-without-google-adsense/",
+          "pageUrl": "https://allbloggingtips.com/make-money-without-google-adsense/",
+          "svgs": [{ "label": "View Tree", "url": "./img/allbloggingtips.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "aristath.github.io",
+      "siteToken": "6a88f3ab74b3",
+      "siteUrl": "https://aristath.github.io",
+      "pages": [
+        {
+          "pageName": "/blog/static-site-comments-using-github-issues-api",
+          "pageUrl": "https://aristath.github.io/blog/static-site-comments-using-github-issues-api",
+          "svgs": [{ "label": "View Tree", "url": "./img/aristath.github.io.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "discord.com",
+      "siteToken": "b51b3f7e9d9a",
+      "siteUrl": "https://discord.com",
+      "pages": [
+        {
+          "pageName": "/channels/@me/1285378709661945856",
+          "pageUrl": "https://discord.com/channels/@me/1285378709661945856",
+          "svgs": [{ "label": "View Tree", "url": "./img/discord.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "twitch.tv",
+      "siteToken": "f8cd28f7b2c5",
+      "siteUrl": "https://twitch.tv",
+      "pages": [
+        {
+          "pageName": "/yugi2x",
+          "pageUrl": "https://www.twitch.tv/yugi2x",
+          "svgs": [{ "label": "View Tree", "url": "./img/twitch.tv.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "weibo.com",
+      "siteToken": "14f40c9c6f97",
+      "siteUrl": "https://weibo.com",
+      "pages": [
+        {
+          "pageName": "/newlogin?tabtype=weibo&gid=102803&openLoginLayer=0&url=https://weibo.com/",
+          "pageUrl": "https://weibo.com/newlogin?tabtype=weibo&gid=102803&openLoginLayer=0&url=https://weibo.com/",
+          "svgs": [{ "label": "View Tree", "url": "./img/weibo.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "tripadvisor.com",
+      "siteToken": "f57b8f770a28",
+      "siteUrl": "https://tripadvisor.com",
+      "pages": [
+        {
+          "pageName": "/AttractionProductReview-g187895-d16796242-The_Best_tour_in_Florence_Renaissance_Medici_Tales_guided_by_a_STORYTELLER-Florenc.html",
+          "pageUrl": "https://www.tripadvisor.com/AttractionProductReview-g187895-d16796242-The_Best_tour_in_Florence_Renaissance_Medici_Tales_guided_by_a_STORYTELLER-Florenc.html",
+          "svgs": [{ "label": "View Tree", "url": "./img/tripadvisor.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "the-boys.fandom.com",
+      "siteToken": "bb1df3a8b29a",
+      "siteUrl": "https://the-boys.fandom.com",
+      "pages": [
+        {
+          "pageName": "/f/p/4400000000000114120",
+          "pageUrl": "https://the-boys.fandom.com/f/p/4400000000000114120",
+          "svgs": [{ "label": "View Tree", "url": "./img/the-boys.fandom.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "bilibili.com",
+      "siteToken": "e2a8ad4a51c4",
+      "siteUrl": "https://bilibili.com",
+      "pages": [
+        {
+          "pageName": "/video/BV1HXzkBsE6q/?spm_id_from=333.1007.tianma.3-2-8.click",
+          "pageUrl": "https://www.bilibili.com/video/BV1HXzkBsE6q/?spm_id_from=333.1007.tianma.3-2-8.click",
+          "svgs": [{ "label": "View Tree", "url": "./img/bilibili.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "trustpilot.com",
+      "siteToken": "f2b2a0c8a7c4",
+      "siteUrl": "https://trustpilot.com",
+      "pages": [
+        {
+          "pageName": "/review/lendingclub.com",
+          "pageUrl": "https://www.trustpilot.com/review/lendingclub.com",
+          "svgs": [{ "label": "View Tree", "url": "./img/trustpilot.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "yelp.com",
+      "siteToken": "f4d0d5f6a76b",
+      "siteUrl": "https://yelp.com",
+      "pages": [
+        {
+          "pageName": "/biz/az88-scottsdale-3?hrid=xOKPmAGBPZfBs2sIee0NOQ",
+          "pageUrl": "https://www.yelp.com/biz/az88-scottsdale-3?hrid=xOKPmAGBPZfBs2sIee0NOQ",
+          "svgs": [{ "label": "View Tree", "url": "./img/yelp.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "threads.com",
+      "siteToken": "7d0a43e54fdc",
+      "siteUrl": "https://threads.com",
+      "pages": [
+        {
+          "pageName": "/@davidthestella/post/DT7N_tMFJj8",
+          "pageUrl": "https://www.threads.com/@davidthestella/post/DT7N_tMFJj8",
+          "svgs": [{ "label": "View Tree", "url": "./img/threads.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "bilibili.tv",
+      "siteToken": "6b34d67f0ef7",
+      "siteUrl": "https://bilibili.tv",
+      "pages": [
+        {
+          "pageName": "/en/play/2118856?bstar_from=bstar-web.homepage.anime.alll",
+          "pageUrl": "https://www.bilibili.tv/en/play/2118856?bstar_from=bstar-web.homepage.anime.alll",
+          "svgs": [{ "label": "View Tree", "url": "./img/bilibili.tv.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "glassdoor.com",
+      "siteToken": "47e09d4e15a7",
+      "siteUrl": "https://glassdoor.com",
+      "pages": [
+        {
+          "pageName": "/Community/salary-negotiations-dvf8-5/a-recruiter-wants-me-to-submit-a-pay-stub-as-proof-of-my-current-salary-before-moving-to-the-next-round-ive-never-been-asked",
+          "pageUrl": "https://www.glassdoor.com/Community/salary-negotiations-dvf8-5/a-recruiter-wants-me-to-submit-a-pay-stub-as-proof-of-my-current-salary-before-moving-to-the-next-round-ive-never-been-asked",
+          "svgs": [{ "label": "View Tree", "url": "./img/glassdoor.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "m.weibo.cn",
+      "siteToken": "de5b0f2d6d2d",
+      "siteUrl": "https://m.weibo.cn",
+      "pages": [
+        {
+          "pageName": "/detail/5259123475615304",
+          "pageUrl": "https://m.weibo.cn/detail/5259123475615304",
+          "svgs": [{ "label": "View Tree", "url": "./img/m.weibo.cn.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "capterra.com",
+      "siteToken": "c27a1a5cb915",
+      "siteUrl": "https://capterra.com",
+      "pages": [
+        {
+          "pageName": "/p/93547/Agility-PR-Solutions/reviews/",
+          "pageUrl": "https://www.capterra.com/p/93547/Agility-PR-Solutions/reviews/",
+          "svgs": [{ "label": "View Tree", "url": "./img/capterra.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "support.google.com",
+      "siteToken": "63a2a8a10e5e",
+      "siteUrl": "https://support.google.com",
+      "pages": [
+        {
+          "pageName": "/webmasters/thread/64043955/review-snippets-for-product-pages-with-pagination?hl=en",
+          "pageUrl": "https://support.google.com/webmasters/thread/64043955/review-snippets-for-product-pages-with-pagination?hl=en",
+          "svgs": [{ "label": "View Tree", "url": "./img/support.google.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "moz.com",
+      "siteToken": "031673428366",
+      "siteUrl": "https://moz.com",
+      "pages": [
+        {
+          "pageName": "/community/q/topic/36637/pagination-for-product-page-reviews",
+          "pageUrl": "https://moz.com/community/q/topic/36637/pagination-for-product-page-reviews",
+          "svgs": [{ "label": "View Tree", "url": "./img/moz.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "webmasters.stackexchange.com",
+      "siteToken": "b315fd6ae35c",
+      "siteUrl": "https://webmasters.stackexchange.com",
+      "pages": [
+        {
+          "pageName": "/questions/14223/are-meta-keywords-obsoletee",
+          "pageUrl": "https://webmasters.stackexchange.com/questions/14223/are-meta-keywords-obsoletee",
+          "svgs": [{ "label": "View Tree", "url": "./img/webmasters.stackexchange.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "tripadvisor.co.uk",
+      "siteToken": "bdb6c1b8f4b9",
+      "siteUrl": "https://tripadvisor.co.uk",
+      "pages": [
+        {
+          "pageName": "/AttractionProductReview-g187895-d12228075-Florence_Pizza_or_Pasta_Class_with_Gelato_Making_at_a_Tuscan_Farm-Florence_Tuscany.htmll",
+          "pageUrl": "https://www.tripadvisor.co.uk/AttractionProductReview-g187895-d12228075-Florence_Pizza_or_Pasta_Class_with_Gelato_Making_at_a_Tuscan_Farm-Florence_Tuscany.htmll",
+          "svgs": [{ "label": "View Tree", "url": "./img/tripadvisor.co.uk.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "superuser.com",
+      "siteToken": "3b0f7c46d2fb",
+      "siteUrl": "https://superuser.com",
+      "pages": [
+        {
+          "pageName": "/questions/205759/format-a-number-with-optional-decimal-places-in-excell",
+          "pageUrl": "https://superuser.com/questions/205759/format-a-number-with-optional-decimal-places-in-excell",
+          "svgs": [{ "label": "View Tree", "url": "./img/superuser.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "glassdoor.co.in",
+      "siteToken": "fa91f4f2899c",
+      "siteUrl": "https://glassdoor.co.in",
+      "pages": [
+        {
+          "pageName": "/Community/salary-negotiations-dvf8-5/a-recruiter-wants-me-to-submit-a-pay-stub-as-proof-of-my-current-salary-before-moving-to-the-next-round-ive-never-been-asked",
+          "pageUrl": "https://www.glassdoor.co.in/Community/salary-negotiations-dvf8-5/a-recruiter-wants-me-to-submit-a-pay-stub-as-proof-of-my-current-salary-before-moving-to-the-next-round-ive-never-been-asked",
+          "svgs": [{ "label": "View Tree", "url": "./img/glassdoor.co.in.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "askubuntu.com",
+      "siteToken": "2c3fa0a1b54b",
+      "siteUrl": "https://askubuntu.com",
+      "pages": [
+        {
+          "pageName": "/questions/9/how-do-i-enable-automatic-updates",
+          "pageUrl": "https://askubuntu.com/questions/9/how-do-i-enable-automatic-updates",
+          "svgs": [{ "label": "View Tree", "url": "./img/askubuntu.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "serverfault.com",
+      "siteToken": "3a1f0b511b3d",
+      "siteUrl": "https://serverfault.com",
+      "pages": [
+        {
+          "pageName": "/questions/147638/how-to-dump-a-microsoft-sql-server-database-to-a-sql-scriptt",
+          "pageUrl": "https://serverfault.com/questions/147638/how-to-dump-a-microsoft-sql-server-database-to-a-sql-scriptt",
+          "svgs": [{ "label": "View Tree", "url": "./img/serverfault.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "yelp.ca",
+      "siteToken": "31f2c80f9a84",
+      "siteUrl": "https://yelp.ca",
+      "pages": [
+        {
+          "pageName": "/biz/zu-izakaya-phoenix-22",
+          "pageUrl": "https://www.yelp.ca/biz/zu-izakaya-phoenix-22",
+          "svgs": [{ "label": "View Tree", "url": "./img/yelp.ca.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "stackoverflow.blog",
+      "siteToken": "1fb2d4b4dbf1",
+      "siteUrl": "https://stackoverflow.blog",
+      "pages": [
+        {
+          "pageName": "/2024/12/31/generative-ai-is-not-going-to-build-your-engineering-team-for-you/#comments",
+          "pageUrl": "https://stackoverflow.blog/2024/12/31/generative-ai-is-not-going-to-build-your-engineering-team-for-you/#comments",
+          "svgs": [{ "label": "View Tree", "url": "./img/stackoverflow.blog.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "forum.vbulletin.com",
+      "siteToken": "b52f10c0d3fd",
+      "siteUrl": "https://forum.vbulletin.com",
+      "pages": [
+        {
+          "pageName": "/forum/vbulletin-announcements/vbulletin-announcements_aa/437-latest-development-versionn",
+          "pageUrl": "https://forum.vbulletin.com/forum/vbulletin-announcements/vbulletin-announcements_aa/437-latest-development-versionn",
+          "svgs": [{ "label": "View Tree", "url": "./img/forum.vbulletin.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "bbpress.org",
+      "siteToken": "bd8b1b2e7e69",
+      "siteUrl": "https://bbpress.org",
+      "pages": [
+        {
+          "pageName": "/forums/topic/is-bbpress-accessible-to-the-disability-w3c-standards/",
+          "pageUrl": "https://bbpress.org/forums/topic/is-bbpress-accessible-to-the-disability-w3c-standards/",
+          "svgs": [{ "label": "View Tree", "url": "./img/bbpress.org.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "caddy.community",
+      "siteToken": "cd6b89d9d6c5",
+      "siteUrl": "https://caddy.community",
+      "pages": [
+        {
+          "pageName": "/t/cant-get-caddy-reverse-proxy-for-jellyfin-working-on-my-mac/33398/9",
+          "pageUrl": "https://caddy.community/t/cant-get-caddy-reverse-proxy-for-jellyfin-working-on-my-mac/33398/9",
+          "svgs": [{ "label": "View Tree", "url": "./img/caddy.community.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "boards.ie",
+      "siteToken": "af9e6b4c5b45",
+      "siteUrl": "https://boards.ie",
+      "pages": [
+        {
+          "pageName": "/discussion/2058431607/helmets-and-hi-vis-may-be-made-compulsory-under-new-laws",
+          "pageUrl": "https://www.boards.ie/discussion/2058431607/helmets-and-hi-vis-may-be-made-compulsory-under-new-laws",
+          "svgs": [{ "label": "View Tree", "url": "./img/boards.ie.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "mathoverflow.net",
+      "siteToken": "a66d468fe8a8",
+      "siteUrl": "https://mathoverflow.net",
+      "pages": [
+        {
+          "pageName": "/questions/28/latex-based-document-editors",
+          "pageUrl": "https://mathoverflow.net/questions/28/latex-based-document-editors",
+          "svgs": [{ "label": "View Tree", "url": "./img/mathoverflow.net.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "fmmvibe.com",
+      "siteToken": "f8a6e60f9d19",
+      "siteUrl": "https://fmmvibe.com",
+      "pages": [
+        {
+          "pageName": "/files/file/1472-fmm26-pre-game-database-editor/",
+          "pageUrl": "https://fmmvibe.com/files/file/1472-fmm26-pre-game-database-editor/",
+          "svgs": [{ "label": "View Tree", "url": "./img/fmmvibe.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "monopolygo.wiki",
+      "siteToken": "fcb41d8bf8f7",
+      "siteUrl": "https://monopolygo.wiki",
+      "pages": [
+        {
+          "pageName": "/todays-events-jan-26-2026/",
+          "pageUrl": "https://monopolygo.wiki/todays-events-jan-26-2026/",
+          "svgs": [{ "label": "View Tree", "url": "./img/monopolygo.wiki.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "nothing.community",
+      "siteToken": "3d6a51bbf3c4",
+      "siteUrl": "https://nothing.community",
+      "pages": [
+        {
+          "pageName": "/d/51062-glyph-matrix-everything-about-it/15",
+          "pageUrl": "https://nothing.community/d/51062-glyph-matrix-everything-about-it/15",
+          "svgs": [{ "label": "View Tree", "url": "./img/nothing.community.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "forum.ge",
+      "siteToken": "dba01d1d6f96",
+      "siteUrl": "https://forum.ge",
+      "pages": [
+        {
+          "pageName": "/?f=19&showtopic=35296766",
+          "pageUrl": "https://forum.ge/?f=19&showtopic=35296766",
+          "svgs": [{ "label": "View Tree", "url": "./img/forum.ge.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "blender.community",
+      "siteToken": "9b0b1ad0f1f3",
+      "siteUrl": "https://blender.community",
+      "pages": [
+        {
+          "pageName": "/c/rightclickselect/0O7v/",
+          "pageUrl": "https://blender.community/c/rightclickselect/0O7v/",
+          "svgs": [{ "label": "View Tree", "url": "./img/blender.community.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "vegasmessageboard.com",
+      "siteToken": "5fdce1b5ad42",
+      "siteUrl": "https://vegasmessageboard.com",
+      "pages": [
+        {
+          "pageName": "/forums/index.php?threads/octavius-julius-or-colosseum.218174//",
+          "pageUrl": "https://www.vegasmessageboard.com/forums/index.php?threads/octavius-julius-or-colosseum.218174//",
+          "svgs": [{ "label": "View Tree", "url": "./img/vegasmessageboard.com.svg" }]
+        }
+      ]
+    },
+    {
+      "siteDomain": "forums.rs",
+      "siteToken": "cfb1a6c8e1bb",
+      "siteUrl": "https://forums.rs",
+      "pages": [
+        {
+          "pageName": "/en/254,255,630,66167741,goto,2.html",
+          "pageUrl": "https://forums.rs/en/254,255,630,66167741,goto,2.html",
+          "svgs": [{ "label": "View Tree", "url": "./img/forums.rs.svg" }]
+        }
+      ]
+    }
+  ];
+
+
+  /********************************************************************
+   * Rendering + behavior
+   ********************************************************************/
+  const root = document.getElementById("root");
+  const q = document.getElementById("q");
+  const expandAllBtn = document.getElementById("expandAll");
+  const collapseAllBtn = document.getElementById("collapseAll");
+
+  const esc = (s) => String(s ?? "")
+          .replaceAll("&","&amp;")
+          .replaceAll("<","&lt;")
+          .replaceAll(">","&gt;")
+          .replaceAll('"',"&quot;")
+          .replaceAll("'","&#39;");
+
+  function matchesQuery(site, query) {
+    if (!query) return true;
+    const hay = [
+      site.siteToken,
+      ...(site.pages || []).flatMap(p => [
+        p.pageName, p.pageUrl,
+        ...(p.svgs || []).flatMap(s => [s.label, s.url])
+      ])
+    ].join(" ").toLowerCase();
+    return hay.includes(query.toLowerCase());
+  }
+
+  function openSvg(url) {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  async function downloadSvg(url, filenameBase) {
+    const safeBase = (filenameBase || "graph").trim().replace(/[^\w\-\.]+/g, "_") || "graph";
+    const name = safeBase.endsWith(".svg") ? safeBase : (safeBase + ".svg");
+
+    const isSameOrigin = (() => {
+      try { return new URL(url, location.href).origin === location.origin; }
+      catch { return true; }
+    })();
+
+    if (isSameOrigin) {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error("Fetch failed: " + res.status);
+        const blob = await res.blob();
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        return;
+      } catch (e) {
+        console.warn("Blob download failed; falling back:", e);
+      }
+    }
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function render(list, query) {
+    const filtered = (list || []).filter(site => matchesQuery(site, query));
+
+    if (!filtered.length) {
+      root.innerHTML = `<div class="empty">No matches.</div>`;
+      return;
+    }
+
+    root.innerHTML = filtered.map((site) => {
+      const pages = site.pages || [];
+      return `
+        <details data-site="1" open>
+          <summary>
+            <span class="token"
+                  title="Double-click to reveal for 5 seconds"
+                  data-token="1"
+                  data-domain="${esc(site.siteDomain)}"
+                  data-tokenvalue="${esc(site.siteToken)}">${esc(site.siteToken)}</span>
+          </summary>
+
+          <div class="site-meta">
+            <a class="pill" href="${esc(site.siteUrl)}" target="_blank" rel="noopener noreferrer">Open site</a>
+            <span class="pill">dbl-click token to reveal</span>
+          </div>
+
+          <div class="pages">
+            ${pages.map((p) => {
+        const svgs = p.svgs || [];
+        return `
+                <div class="page">
+                  <div class="page-title">
+                    <!--<span>${esc(p.pageName || "/")}</span>-->
+                    ${p.pageUrl ? `<a class="pill" href="${esc(p.pageUrl)}" target="_blank" rel="noopener noreferrer">Open page</a>` : ""}
+                  </div>
+
+                  <div class="links">
+                    ${svgs.length ? svgs.map((s) => `
+                      <div class="svg-row">
+                        <a href="${esc(s.url)}"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           data-svg="1"
+                           data-url="${esc(s.url)}">
+                          ${esc(s.label || s.url)}
+                        </a>
+
+                        <button class="btn-small"
+                                type="button"
+                                data-dl="1"
+                                data-url="${esc(s.url)}"
+                                data-fn="${esc(site.siteDomain)}">
+                          Download
+                        </button>
+                      </div>
+                    `).join("") : `<span class="empty">No SVG links.</span>`}
+                  </div>
+                </div>
+              `;
+      }).join("")}
+          </div>
+        </details>
+      `;
+    }).join("");
+
+    // Open SVG in new tab
+    root.querySelectorAll('a[data-svg="1"]').forEach(a => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        openSvg(a.getAttribute("data-url"));
+      });
+    });
+
+    // Download SVG
+    root.querySelectorAll('button[data-dl="1"]').forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const url = btn.getAttribute("data-url");
+        const domain = btn.getAttribute("data-fn");
+        await downloadSvg(url, `${domain}.svg`);
+      });
+    });
+
+    // Reveal token for 5 seconds on double-click
+    root.querySelectorAll('span[data-token="1"]').forEach(el => {
+      let timer = null;
+      el.addEventListener("dblclick", (e) => {
+        e.preventDefault();
+        const domain = el.getAttribute("data-domain");
+        const token = el.getAttribute("data-tokenvalue");
+
+        el.textContent = domain;
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => { el.textContent = token; }, 5000);
+      });
+    });
+  }
+
+  render(DATA, "");
+  q.addEventListener("input", () => render(DATA, q.value.trim()));
+
+  expandAllBtn.addEventListener("click", () => {
+    document.querySelectorAll("details[data-site='1']").forEach(d => d.open = true);
+  });
+  collapseAllBtn.addEventListener("click", () => {
+    document.querySelectorAll("details[data-site='1']").forEach(d => d.open = false);
+  });
+</script>
+</body>
+</html>
