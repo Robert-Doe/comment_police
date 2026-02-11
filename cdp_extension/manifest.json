@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "CDP Pre-Render Intercept",
+  "version": "0.1",
+  "permissions": ["debugger", "scripting", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "sw.js" },
+  "action": { "default_title": "CDP Intercept" }
+}
